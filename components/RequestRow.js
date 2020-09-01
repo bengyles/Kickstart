@@ -4,17 +4,22 @@ import web3 from '../ethereum/web3';
 import Campaign from '../ethereum/campaign';
 
 class RequestRow extends Component {
+  state = {
+    accounts: []
+  }
+  async componentDidMount() {
+    const accounts = await web3.eth.getAccounts();
+    this.setState({accounts});
+  }
 
   onApprove = async () => {
     const campaign = Campaign(this.props.address);
-    const accounts = await web3.eth.getAccounts();
-    await campaign.methods.approveRequest(this.props.id).send({from: accounts[0]});
+    await campaign.methods.approveRequest(this.props.id).send({from: this.state.accounts[0]});
   };
 
   onFinalize = async () => {
     const campaign = Campaign(this.props.address);
-    const accounts = await web3.eth.getAccounts();
-    await campaign.methods.finalizeRequest(this.props.id).send({from: accounts[0]});
+    await campaign.methods.finalizeRequest(this.props.id).send({from: this.state.accounts[0]});
   };
 
   render() {
@@ -29,10 +34,10 @@ class RequestRow extends Component {
           <Cell>{request.recipient}</Cell>
           <Cell>{request.approvalCount}/{approversCount}</Cell>
           <Cell>
-            { !request.complete && <Button color="green" basic onClick={this.onApprove}>Approve</Button> }
+            {!request.complete && <Button color="green" basic onClick={this.onApprove}>Approve</Button>}
           </Cell>
           <Cell>
-            { !request.complete && <Button color="teal" basic onClick={this.onFinalize}>Finalize</Button>}
+            {!request.complete && <Button disabled={this.props.manager !== this.state.accounts[0]} color="teal" basic onClick={this.onFinalize}>Finalize</Button>}
           </Cell>
         </Row>
     );
